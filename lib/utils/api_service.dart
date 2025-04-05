@@ -346,7 +346,15 @@ class ApiService {
   // Check if server is running - optimized with timeout
   static Future<bool> isServerRunning() async {
     try {
+      // Check if we're on a physical mobile device where the local server won't be accessible
+      final isPhysicalDevice = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
       final isOfflineModeEnabled = await OfflineMode.isEnabled();
+      
+      // Automatically enable offline mode for physical devices to avoid connection errors
+      if (isPhysicalDevice && !isOfflineModeEnabled) {
+        await OfflineMode.setEnabled(true);
+        return false; // Return false to show the appropriate screen
+      }
       
       if (isOfflineModeEnabled) {
         // If offline mode is enabled, pretend server is not running

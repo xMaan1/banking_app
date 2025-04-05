@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import '../utils/app_colors.dart';
 import '../utils/api_service.dart';
+import '../utils/offline_mode.dart';
 import '../components/custom_button.dart';
 
 class ServerErrorScreen extends StatefulWidget {
@@ -36,10 +39,28 @@ class _ServerErrorScreenState extends State<ServerErrorScreen> {
       // Still not connected, show error
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Could not connect to server. Please try again.'),
+          content: Text('Could not connect to server. Please try again or use offline mode.'),
           backgroundColor: AppColors.error,
         ),
       );
+    }
+  }
+
+  Future<void> _useOfflineMode() async {
+    setState(() {
+      _isRetrying = true;
+    });
+    
+    // Enable offline mode
+    await OfflineMode.setEnabled(true);
+    
+    setState(() {
+      _isRetrying = false;
+    });
+    
+    if (mounted) {
+      // Navigate to welcome screen
+      Navigator.pushReplacementNamed(context, '/welcome');
     }
   }
 
@@ -93,6 +114,9 @@ class _ServerErrorScreenState extends State<ServerErrorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if we're on a physical mobile device
+    final bool isPhysicalDevice = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -107,9 +131,11 @@ class _ServerErrorScreenState extends State<ServerErrorScreen> {
                 color: AppColors.error,
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Backend Server Not Found',
-                style: TextStyle(
+              Text(
+                isPhysicalDevice 
+                    ? 'Mobile App Ready'
+                    : 'Backend Server Not Found',
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -117,16 +143,18 @@ class _ServerErrorScreenState extends State<ServerErrorScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Could not connect to the banking backend server. Please make sure it\'s running and try again.',
-                style: TextStyle(
+              Text(
+                isPhysicalDevice
+                    ? 'Use the app in offline mode with sample data to explore all features without a server connection.'
+                    : 'Could not connect to the banking backend server. Please make sure it\'s running and try again.',
+                style: const TextStyle(
                   fontSize: 16,
                   color: AppColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              Text(
+              if (!isPhysicalDevice) Text(
                 'Server URL: ${ApiService.baseUrl}',
                 style: const TextStyle(
                   fontSize: 14,
@@ -136,18 +164,48 @@ class _ServerErrorScreenState extends State<ServerErrorScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
-              CustomButton(
-                text: 'RETRY CONNECTION',
-                onPressed: _isRetrying ? null : _retryConnection,
-                isLoading: _isRetrying,
-              ),
+              if (isPhysicalDevice)
+                CustomButton(
+                  text: 'CONTINUE WITH OFFLINE MODE',
+                  onPressed: _isRetrying ? null : _useOfflineMode,
+                  isLoading: _isRetrying,
+                )
+              else
+                CustomButton(
+                  text: 'RETRY CONNECTION',
+                  onPressed: _isRetrying ? null : _retryConnection,
+                  isLoading: _isRetrying,
+                ),
               const SizedBox(height: 16),
-              CustomButton(
-                text: 'HOW TO START SERVER',
-                onPressed: _openTerminalInstructions,
-                backgroundColor: AppColors.backgroundLight,
-                textColor: AppColors.textPrimary,
-              ),
+              if (isPhysicalDevice)
+                CustomButton(
+                  text: 'TRY SERVER CONNECTION',
+                  onPressed: _isRetrying ? null : _retryConnection,
+                  backgroundColor: AppColors.backgroundLight,
+                  textColor: AppColors.textPrimary,
+                )
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomButton(
+                        text: 'USE OFFLINE MODE',
+                        onPressed: _isRetrying ? null : _useOfflineMode,
+                        backgroundColor: AppColors.accentLight,
+                        textColor: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: CustomButton(
+                        text: 'HOW TO START SERVER',
+                        onPressed: _openTerminalInstructions,
+                        backgroundColor: AppColors.backgroundLight,
+                        textColor: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),
