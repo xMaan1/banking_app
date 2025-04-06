@@ -83,11 +83,7 @@ A modern banking application with Flutter frontend and Django backend.
    ```
    flutter run
    ```
-
-## Screenshots
-
-[Add screenshots of key screens here]
-
+   
 ## API Endpoints
 
 - `POST /api/auth/register/`: Register a new user
