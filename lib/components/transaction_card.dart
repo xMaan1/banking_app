@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/app_colors.dart';
 
-enum TransactionType { deposit, withdrawal, transfer }
+enum TransactionType {
+  deposit,
+  withdrawal,
+  transfer
+}
 
 class TransactionCard extends StatelessWidget {
   final String title;
@@ -27,112 +32,146 @@ class TransactionCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
+              color: AppColors.shadowLight,
               offset: const Offset(0, 2),
+              blurRadius: 6,
             ),
           ],
         ),
         child: Row(
           children: [
-            _buildIcon(),
-            const SizedBox(width: 16),
+            // Transaction Icon
+            _buildTransactionIcon(),
+            const SizedBox(width: 12),
+            
+            // Transaction Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     title,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    date,
-                    style: const TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: AppColors.textPrimary,
+                      fontFamily: 'Montserrat',
                     ),
                   ),
-                  if (description != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      description!,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Text(
+                        date,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                          fontFamily: 'Montserrat',
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                      if (description != null && description!.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          width: 3,
+                          height: 3,
+                          decoration: const BoxDecoration(
+                            color: AppColors.textSecondary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            description!,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                              fontFamily: 'Montserrat',
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ],
               ),
             ),
-            Text(
-              _getAmountWithSign(),
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                color: _getAmountColor(),
+            
+            // Amount
+            Container(
+              margin: const EdgeInsets.only(left: 8),
+              child: Text(
+                _getAmountPrefix() + amount,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: _getAmountColor(),
+                  fontFamily: 'Montserrat',
+                ),
               ),
             ),
           ],
         ),
       ),
-    );
+    ).animate()
+      .fadeIn(duration: 300.ms)
+      .slideX(begin: 0.05, end: 0, duration: 300.ms, curve: Curves.easeOutQuad);
   }
 
-  Widget _buildIcon() {
-    IconData iconData;
-    Color backgroundColor;
-
-    switch (type) {
-      case TransactionType.deposit:
-        iconData = Icons.arrow_downward;
-        backgroundColor = AppColors.success.withOpacity(0.1);
-        break;
-      case TransactionType.withdrawal:
-        iconData = Icons.arrow_upward;
-        backgroundColor = AppColors.error.withOpacity(0.1);
-        break;
-      case TransactionType.transfer:
-        iconData = Icons.swap_horiz;
-        backgroundColor = AppColors.info.withOpacity(0.1);
-        break;
-    }
-
+  Widget _buildTransactionIcon() {
     return Container(
-      padding: const EdgeInsets.all(10),
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        color: _getIconBackgroundColor(),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(
-        iconData,
-        color: _getAmountColor(),
-        size: 24,
+        _getTransactionIcon(),
+        color: _getIconColor(),
+        size: 18,
       ),
     );
   }
 
-  String _getAmountWithSign() {
+  Color _getIconBackgroundColor() {
     switch (type) {
       case TransactionType.deposit:
-        return '+\$$amount';
+        return AppColors.success.withOpacity(0.1);
       case TransactionType.withdrawal:
-        return '-\$$amount';
+        return AppColors.error.withOpacity(0.1);
       case TransactionType.transfer:
-        return '\$$amount';
+        return AppColors.info.withOpacity(0.1);
+    }
+  }
+
+  Color _getIconColor() {
+    switch (type) {
+      case TransactionType.deposit:
+        return AppColors.success;
+      case TransactionType.withdrawal:
+        return AppColors.error;
+      case TransactionType.transfer:
+        return AppColors.info;
+    }
+  }
+
+  IconData _getTransactionIcon() {
+    switch (type) {
+      case TransactionType.deposit:
+        return Icons.arrow_downward;
+      case TransactionType.withdrawal:
+        return Icons.arrow_upward;
+      case TransactionType.transfer:
+        return Icons.swap_horiz;
     }
   }
 
@@ -144,6 +183,17 @@ class TransactionCard extends StatelessWidget {
         return AppColors.error;
       case TransactionType.transfer:
         return AppColors.info;
+    }
+  }
+
+  String _getAmountPrefix() {
+    switch (type) {
+      case TransactionType.deposit:
+        return '+\$';
+      case TransactionType.withdrawal:
+        return '-\$';
+      case TransactionType.transfer:
+        return '\$';
     }
   }
 } 

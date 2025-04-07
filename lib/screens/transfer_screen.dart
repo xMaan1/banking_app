@@ -219,8 +219,9 @@ class _TransferScreenState extends State<TransferScreen> {
                   text: 'TRANSFER NOW',
                   onPressed: _isTransferring ? null : () => _submitTransfer(),
                   isLoading: _isTransferring,
-                  backgroundColor: Colors.transparent,
-                  textColor: AppColors.primary,
+                  backgroundColor: AppColors.primary,
+                  textColor: Colors.white,
+                  elevated: true,
                 ),
                 const SizedBox(height: 16),
                 CustomButton(
@@ -228,8 +229,9 @@ class _TransferScreenState extends State<TransferScreen> {
                   onPressed: () {
                     // Schedule transfer logic
                   },
-                  backgroundColor: Colors.transparent,
-                  textColor: AppColors.primary,
+                  backgroundColor: AppColors.primary,
+                  textColor: Colors.white,
+                  elevated: true,
                 ),
               ],
             ),

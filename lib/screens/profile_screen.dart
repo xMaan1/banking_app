@@ -180,8 +180,9 @@ class ProfileScreen extends StatelessWidget {
             onPressed: () {
               _showLogoutConfirmation(context);
             },
-            backgroundColor: Colors.transparent,
-            textColor: AppColors.primary,
+            backgroundColor: AppColors.primary,
+            textColor: Colors.white,
+            elevated: true,
           ),
         ],
       ),
